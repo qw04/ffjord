@@ -78,11 +78,11 @@ def save_trajectory(model, data_samples, savedir, ntimes=101, memory=0.01, devic
                 yy = z[:, 1].reshape(npts, npts)
                 qz = np.exp(logqz).reshape(npts, npts)
 
-                plt.pcolormesh(xx, yy, qz)
+                # plt.pcolormesh(xx, yy, qz)
                 ax.set_xlim(-4, 4)
                 ax.set_ylim(-4, 4)
                 cmap = matplotlib.cm.get_cmap(None)
-                ax.set_axis_bgcolor(cmap(0.))
+                ax.set_facecolor(cmap(0.))
                 ax.invert_yaxis()
                 ax.get_xaxis().set_ticks([])
                 ax.get_yaxis().set_ticks([])
@@ -127,7 +127,8 @@ def save_trajectory(model, data_samples, savedir, ntimes=101, memory=0.01, devic
 
 def trajectory_to_video(savedir):
     import subprocess
-    bashCommand = 'ffmpeg -y -i {} {}'.format(os.path.join(savedir, 'viz-%05d.jpg'), os.path.join(savedir, 'traj.mp4'))
+    bashCommand = 'ffmpeg -y -i {} {}'.format(os.path.join(savedir, f'viz-{0:05d}.jpg'), os.path.join(savedir, 'traj.mp4'))
+    print(bashCommand)
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
 

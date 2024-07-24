@@ -2,6 +2,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+from tqdm import tqdm
+
 import argparse
 import os
 import time
@@ -25,7 +27,7 @@ from diagnostics.viz_toy import save_trajectory, trajectory_to_video
 SOLVERS = ["dopri5", "bdf", "rk4", "midpoint", 'adams', 'explicit_adams', 'fixed_adams']
 parser = argparse.ArgumentParser('Continuous Normalizing Flow')
 parser.add_argument(
-    '--data', choices=['swissroll', '8gaussians', 'pinwheel', 'circles', 'moons', '2spirals', 'checkerboard', 'rings'],
+    '--data', choices=['swissroll', '8gaussians', 'pinwheel', 'circles', 'moons', '2spirals', 'checkerboard', 'rings', '2moons'],
     type=str, default='pinwheel'
 )
 parser.add_argument(
@@ -54,7 +56,7 @@ parser.add_argument('--spectral_norm', type=eval, default=False, choices=[True, 
 parser.add_argument('--batch_norm', type=eval, default=False, choices=[True, False])
 parser.add_argument('--bn_lag', type=float, default=0)
 
-parser.add_argument('--niters', type=int, default=10000)
+parser.add_argument('--niters', type=int, default=1000)
 parser.add_argument('--batch_size', type=int, default=100)
 parser.add_argument('--test_batch_size', type=int, default=1000)
 parser.add_argument('--lr', type=float, default=1e-3)
@@ -68,7 +70,7 @@ parser.add_argument('--JFrobint', type=float, default=None, help="int_t ||df/dx|
 parser.add_argument('--JdiagFrobint', type=float, default=None, help="int_t ||df_i/dx_i||_F")
 parser.add_argument('--JoffdiagFrobint', type=float, default=None, help="int_t ||df/dx - df_i/dx_i||_F")
 
-parser.add_argument('--save', type=str, default='experiments/cnf')
+parser.add_argument('--save', type=str, default='experiments\\cnf')
 parser.add_argument('--viz_freq', type=int, default=100)
 parser.add_argument('--val_freq', type=int, default=100)
 parser.add_argument('--log_freq', type=int, default=10)
@@ -83,7 +85,7 @@ if args.layer_type == "blend":
     logger.info("!! Setting time_length from None to 1.0 due to use of Blend layers.")
     args.time_length = 1.0
 
-logger.info(args)
+# logger.info(args)
 
 device = torch.device('cuda:' + str(args.gpu) if torch.cuda.is_available() else 'cpu')
 
@@ -131,8 +133,8 @@ if __name__ == '__main__':
     if args.spectral_norm: add_spectral_norm(model)
     set_cnf_options(args, model)
 
-    logger.info(model)
-    logger.info("Number of trainable parameters: {}".format(count_parameters(model)))
+    # logger.info(model)
+    # logger.info("Number of trainable parameters: {}".format(count_parameters(model)))
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
@@ -145,7 +147,7 @@ if __name__ == '__main__':
     end = time.time()
     best_loss = float('inf')
     model.train()
-    for itr in range(1, args.niters + 1):
+    for itr in tqdm(range(1, args.niters + 1)):
         optimizer.zero_grad()
         if args.spectral_norm: spectral_norm_power_iteration(model, 1)
 
@@ -173,25 +175,26 @@ if __name__ == '__main__':
         time_meter.update(time.time() - end)
         tt_meter.update(total_time)
 
-        log_message = (
-            'Iter {:04d} | Time {:.4f}({:.4f}) | Loss {:.6f}({:.6f}) | NFE Forward {:.0f}({:.1f})'
-            ' | NFE Backward {:.0f}({:.1f}) | CNF Time {:.4f}({:.4f})'.format(
-                itr, time_meter.val, time_meter.avg, loss_meter.val, loss_meter.avg, nfef_meter.val, nfef_meter.avg,
-                nfeb_meter.val, nfeb_meter.avg, tt_meter.val, tt_meter.avg
-            )
-        )
+        # log_message = (
+        #     'Iter {:04d} | Time {:.4f}({:.4f}) | Loss {:.6f}({:.6f}) | NFE Forward {:.0f}({:.1f})'
+        #     ' | NFE Backward {:.0f}({:.1f}) | CNF Time {:.4f}({:.4f})'.format(
+        #         itr, time_meter.val, time_meter.avg, loss_meter.val, loss_meter.avg, nfef_meter.val, nfef_meter.avg,
+        #         nfeb_meter.val, nfeb_meter.avg, tt_meter.val, tt_meter.avg
+        #     )
+        # )
+
         if len(regularization_coeffs) > 0:
             log_message = append_regularization_to_log(log_message, regularization_fns, reg_states)
 
-        logger.info(log_message)
+        # logger.info(log_message)
 
         if itr % args.val_freq == 0 or itr == args.niters:
             with torch.no_grad():
                 model.eval()
                 test_loss = compute_loss(args, model, batch_size=args.test_batch_size)
                 test_nfe = count_nfe(model)
-                log_message = '[TEST] Iter {:04d} | Test Loss {:.6f} | NFE {:.0f}'.format(itr, test_loss, test_nfe)
-                logger.info(log_message)
+                # log_message = '[TEST] Iter {:04d} | Test Loss {:.6f} | NFE {:.0f}'.format(itr, test_loss, test_nfe)
+                # logger.info(log_message)
 
                 if test_loss.item() < best_loss:
                     best_loss = test_loss.item()
@@ -228,4 +231,4 @@ if __name__ == '__main__':
     logger.info('Plotting trajectory to {}'.format(save_traj_dir))
     data_samples = toy_data.inf_train_gen(args.data, batch_size=2000)
     save_trajectory(model, data_samples, save_traj_dir, device=device)
-    trajectory_to_video(save_traj_dir)
+    # trajectory_to_video(save_traj_dir)

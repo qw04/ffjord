@@ -284,8 +284,9 @@ class ODEfunc(nn.Module):
         # increment num evals
         self._num_evals += 1
 
-        # convert to tensor
-        t = torch.tensor(t).type_as(y)
+        # convert to tensor - isn't really needed now for some reason
+        # t = torch.tensor(t)#.type_as(y) #old line of code
+        t = t.clone().detach().type_as(y)#.requires_grad_(True) #this was the recommended change to get rid of warning but was not needed
         batchsize = y.shape[0]
 
         # Sample and fix the noise.
