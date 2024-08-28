@@ -28,7 +28,7 @@ SOLVERS = ["dopri5", "bdf", "rk4", "midpoint", 'adams', 'explicit_adams', 'fixed
 parser = argparse.ArgumentParser('Continuous Normalizing Flow')
 parser.add_argument(
     '--data', choices=['swissroll', '8gaussians', 'pinwheel', 'circles', 'moons', '2spirals', 'checkerboard', 'rings', '2moons'],
-    type=str, default='pinwheel'
+    type=str, default='moons'
 )
 parser.add_argument(
     "--layer_type", type=str, default="concatsquash",
@@ -56,8 +56,8 @@ parser.add_argument('--spectral_norm', type=eval, default=False, choices=[True, 
 parser.add_argument('--batch_norm', type=eval, default=False, choices=[True, False])
 parser.add_argument('--bn_lag', type=float, default=0)
 
-parser.add_argument('--niters', type=int, default=1000)
-parser.add_argument('--batch_size', type=int, default=100)
+parser.add_argument('--niters', type=int, default=1600)
+parser.add_argument('--batch_size', type=int, default=1000)
 parser.add_argument('--test_batch_size', type=int, default=1000)
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--weight_decay', type=float, default=1e-5)
@@ -71,7 +71,7 @@ parser.add_argument('--JdiagFrobint', type=float, default=None, help="int_t ||df
 parser.add_argument('--JoffdiagFrobint', type=float, default=None, help="int_t ||df/dx - df_i/dx_i||_F")
 
 parser.add_argument('--save', type=str, default='experiments\\cnf')
-parser.add_argument('--viz_freq', type=int, default=100)
+parser.add_argument('--viz_freq', type=int, default=200)
 parser.add_argument('--val_freq', type=int, default=100)
 parser.add_argument('--log_freq', type=int, default=10)
 parser.add_argument('--gpu', type=int, default=0)
